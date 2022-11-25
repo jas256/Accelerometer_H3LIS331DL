@@ -30,6 +30,7 @@
 */
 
 #include "Arduino.h"
+#include <Wire.h>
 
 #ifndef H3LIS331DL_H
 #define H3LIS331DL_H
@@ -278,9 +279,10 @@ class H3LIS331DL {
   public:
     H3LIS331DL() {
         _adjVal[0] = _adjVal[1] = _adjVal[2] = 0;
+        wireBus = Wire;
     };
     void init(H3LIS331DL_ODR_t  odr = H3LIS331DL_ODR_100Hz,
-              H3LIS331DL_Mode_t mode = H3LIS331DL_NORMAL, H3LIS331DL_Fullscale_t fullScale = H3LIS331DL_FULLSCALE_2);
+              H3LIS331DL_Mode_t mode = H3LIS331DL_NORMAL, H3LIS331DL_Fullscale_t fullScale = H3LIS331DL_FULLSCALE_2, TwoWire &wire = Wire, uint8_t address=H3LIS331DL_MEMS_I2C_ADDRESS);
     void importPara(int16_t val_x, int16_t val_y, int16_t val_z);
     void readXYZ(int16_t* x, int16_t* y, int16_t* z);
     void getAcceleration(double* xyz);
@@ -340,6 +342,8 @@ class H3LIS331DL {
     uint8_t readReg(byte deviceAddr, byte Reg, byte* Data);
     uint8_t writeReg(byte deviceAddress, byte WriteAddr, byte Data);
     int16_t _adjVal[3];
+    TwoWire &wireBus = Wire;
+    uint8_t _address = H3LIS331DL_MEMS_I2C_ADDRESS;
 };
 
 #endif /*__H3LIS331DL_H */

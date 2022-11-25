@@ -32,9 +32,9 @@
 #include "H3LIS331DL.h"
 #include <Wire.h>
 
-void H3LIS331DL::init(H3LIS331DL_ODR_t  odr, H3LIS331DL_Mode_t mode, H3LIS331DL_Fullscale_t fullScale) {
-
-    Wire.begin();
+void H3LIS331DL::init(H3LIS331DL_ODR_t  odr, H3LIS331DL_Mode_t mode, H3LIS331DL_Fullscale_t fullScale, TwoWire &wire, uint8_t address) {
+    wireBus = wire;
+    _address = address;
     //set output data rate
     setODR(odr);
     //set PowerMode
@@ -81,7 +81,7 @@ void H3LIS331DL::getAcceleration(double* xyz) {
 *******************************************************************************/
 status_t H3LIS331DL::getWHO_AM_I(byte* val) {
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_WHO_AM_I, val)) {
+    if (!readReg(_address, H3LIS331DL_WHO_AM_I, val)) {
         return MEMS_ERROR;
     }
 
@@ -99,14 +99,14 @@ status_t H3LIS331DL::getWHO_AM_I(byte* val) {
 status_t H3LIS331DL::setODR(H3LIS331DL_ODR_t dr) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG1, &value)) {
+    if (!readReg(_address, H3LIS331DL_CTRL_REG1, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0xE7;
     value |= dr << H3LIS331DL_DR;
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG1, value)) {
+    if (!writeReg(_address, H3LIS331DL_CTRL_REG1, value)) {
         return MEMS_ERROR;
     }
 
@@ -124,14 +124,14 @@ status_t H3LIS331DL::setODR(H3LIS331DL_ODR_t dr) {
 status_t H3LIS331DL::setMode(H3LIS331DL_Mode_t pm) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG1, &value)) {
+    if (!readReg(_address, H3LIS331DL_CTRL_REG1, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0x1F;
     value |= (pm << H3LIS331DL_PM);
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG1, value)) {
+    if (!writeReg(_address, H3LIS331DL_CTRL_REG1, value)) {
         return MEMS_ERROR;
     }
 
@@ -150,14 +150,14 @@ status_t H3LIS331DL::setMode(H3LIS331DL_Mode_t pm) {
 status_t H3LIS331DL::setAxis(H3LIS331DL_Axis_t axis) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG1, &value)) {
+    if (!readReg(_address, H3LIS331DL_CTRL_REG1, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0xF8;
     value |= (0x07 & axis);
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG1, value)) {
+    if (!writeReg(_address, H3LIS331DL_CTRL_REG1, value)) {
         return MEMS_ERROR;
     }
 
@@ -175,14 +175,14 @@ status_t H3LIS331DL::setAxis(H3LIS331DL_Axis_t axis) {
 status_t H3LIS331DL::setFullScale(H3LIS331DL_Fullscale_t fs) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG4, &value)) {
+    if (!readReg(_address, H3LIS331DL_CTRL_REG4, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0xCF;
     value |= (fs << H3LIS331DL_FS);
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG4, value)) {
+    if (!writeReg(_address, H3LIS331DL_CTRL_REG4, value)) {
         return MEMS_ERROR;
     }
 
@@ -200,14 +200,14 @@ status_t H3LIS331DL::setFullScale(H3LIS331DL_Fullscale_t fs) {
 status_t H3LIS331DL::setBDU(State_t bdu) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG4, &value)) {
+    if (!readReg(_address, H3LIS331DL_CTRL_REG4, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0x7F;
     value |= (bdu << H3LIS331DL_BDU);
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG4, value)) {
+    if (!writeReg(_address, H3LIS331DL_CTRL_REG4, value)) {
         return MEMS_ERROR;
     }
 
@@ -225,14 +225,14 @@ status_t H3LIS331DL::setBDU(State_t bdu) {
 status_t H3LIS331DL::setBLE(H3LIS331DL_Endianess_t ble) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG4, &value)) {
+    if (!readReg(_address, H3LIS331DL_CTRL_REG4, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0xBF;
     value |= (ble << H3LIS331DL_BLE);
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG4, value)) {
+    if (!writeReg(_address, H3LIS331DL_CTRL_REG4, value)) {
         return MEMS_ERROR;
     }
 
@@ -250,14 +250,14 @@ status_t H3LIS331DL::setBLE(H3LIS331DL_Endianess_t ble) {
 status_t H3LIS331DL::setFDS(State_t fds) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG2, &value)) {
+    if (!readReg(_address, H3LIS331DL_CTRL_REG2, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0xEF;
     value |= (fds << H3LIS331DL_FDS);
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG2, value)) {
+    if (!writeReg(_address, H3LIS331DL_CTRL_REG2, value)) {
         return MEMS_ERROR;
     }
 
@@ -275,14 +275,14 @@ status_t H3LIS331DL::setFDS(State_t fds) {
 status_t H3LIS331DL::setBOOT(State_t boot) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG2, &value)) {
+    if (!readReg(_address, H3LIS331DL_CTRL_REG2, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0x7F;
     value |= (boot << H3LIS331DL_BOOT);
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG2, value)) {
+    if (!writeReg(_address, H3LIS331DL_CTRL_REG2, value)) {
         return MEMS_ERROR;
     }
 
@@ -300,14 +300,14 @@ status_t H3LIS331DL::setBOOT(State_t boot) {
 status_t H3LIS331DL::setSelfTest(State_t st) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG4, &value)) {
+    if (!readReg(_address, H3LIS331DL_CTRL_REG4, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0xFD;
     value |= (st << H3LIS331DL_ST);
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG4, value)) {
+    if (!writeReg(_address, H3LIS331DL_CTRL_REG4, value)) {
         return MEMS_ERROR;
     }
 
@@ -325,14 +325,14 @@ status_t H3LIS331DL::setSelfTest(State_t st) {
 status_t H3LIS331DL::setSelfTestSign(State_t st_sign) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG4, &value)) {
+    if (!readReg(_address, H3LIS331DL_CTRL_REG4, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0xF7;
     value |= (st_sign << H3LIS331DL_ST_SIGN);
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG4, value)) {
+    if (!writeReg(_address, H3LIS331DL_CTRL_REG4, value)) {
         return MEMS_ERROR;
     }
 
@@ -350,14 +350,14 @@ status_t H3LIS331DL::setSelfTestSign(State_t st_sign) {
 status_t H3LIS331DL::setIntHighLow(State_t ihl) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG3, &value)) {
+    if (!readReg(_address, H3LIS331DL_CTRL_REG3, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0x7F;
     value |= (ihl << H3LIS331DL_IHL);
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG3, value)) {
+    if (!writeReg(_address, H3LIS331DL_CTRL_REG3, value)) {
         return MEMS_ERROR;
     }
 
@@ -375,14 +375,14 @@ status_t H3LIS331DL::setIntHighLow(State_t ihl) {
 status_t H3LIS331DL::setIntPPOD(State_t pp_od) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG3, &value)) {
+    if (!readReg(_address, H3LIS331DL_CTRL_REG3, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0xBF;
     value |= (pp_od << H3LIS331DL_PP_OD);
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG3, value)) {
+    if (!writeReg(_address, H3LIS331DL_CTRL_REG3, value)) {
         return MEMS_ERROR;
     }
 
@@ -401,14 +401,14 @@ status_t H3LIS331DL::setIntPPOD(State_t pp_od) {
 status_t H3LIS331DL::setInt1DataSign(H3LIS331DL_INT_Conf_t i_cfg) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG3, &value)) {
+    if (!readReg(_address, H3LIS331DL_CTRL_REG3, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0xFC;
     value |= (i_cfg << H3LIS331DL_I1_CFG);
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG3, value)) {
+    if (!writeReg(_address, H3LIS331DL_CTRL_REG3, value)) {
         return MEMS_ERROR;
     }
 
@@ -427,14 +427,14 @@ status_t H3LIS331DL::setInt1DataSign(H3LIS331DL_INT_Conf_t i_cfg) {
 status_t H3LIS331DL::setInt2DataSign(H3LIS331DL_INT_Conf_t i_cfg) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG3, &value)) {
+    if (!readReg(_address, H3LIS331DL_CTRL_REG3, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0xE7;
     value |= (i_cfg << H3LIS331DL_I2_CFG);
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG3, value)) {
+    if (!writeReg(_address, H3LIS331DL_CTRL_REG3, value)) {
         return MEMS_ERROR;
     }
 
@@ -452,14 +452,14 @@ status_t H3LIS331DL::setInt2DataSign(H3LIS331DL_INT_Conf_t i_cfg) {
 status_t H3LIS331DL::setSPI34Wire(H3LIS331DL_SPIMode_t sim) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG4, &value)) {
+    if (!readReg(_address, H3LIS331DL_CTRL_REG4, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0xFE;
     value |= (sim << H3LIS331DL_SIM);
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG4, value)) {
+    if (!writeReg(_address, H3LIS331DL_CTRL_REG4, value)) {
         return MEMS_ERROR;
     }
 
@@ -477,14 +477,14 @@ status_t H3LIS331DL::setSPI34Wire(H3LIS331DL_SPIMode_t sim) {
 status_t H3LIS331DL::turnONEnable(H3LIS331DL_Sleep_To_Wake_Conf_t stw) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG5, &value)) {
+    if (!readReg(_address, H3LIS331DL_CTRL_REG5, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0x00;
     value |= (stw << H3LIS331DL_TURN_ON);
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG5, value)) {
+    if (!writeReg(_address, H3LIS331DL_CTRL_REG5, value)) {
         return MEMS_ERROR;
     }
 
@@ -502,7 +502,7 @@ status_t H3LIS331DL::turnONEnable(H3LIS331DL_Sleep_To_Wake_Conf_t stw) {
 status_t H3LIS331DL::HPFilterReset(void) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_HP_FILTER_RESET, &value)) {
+    if (!readReg(_address, H3LIS331DL_HP_FILTER_RESET, &value)) {
         return MEMS_ERROR;
     }
 
@@ -519,7 +519,7 @@ status_t H3LIS331DL::HPFilterReset(void) {
 *******************************************************************************/
 status_t H3LIS331DL::setReference(int8_t ref) {
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_REFERENCE_REG, ref)) {
+    if (!writeReg(_address, H3LIS331DL_REFERENCE_REG, ref)) {
         return MEMS_ERROR;
     }
 
@@ -537,14 +537,14 @@ status_t H3LIS331DL::setReference(int8_t ref) {
 status_t H3LIS331DL::setHPFMode(H3LIS331DL_HPFMode_t hpm) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG2, &value)) {
+    if (!readReg(_address, H3LIS331DL_CTRL_REG2, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0x9F;
     value |= (hpm << H3LIS331DL_HPM);
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG2, value)) {
+    if (!writeReg(_address, H3LIS331DL_CTRL_REG2, value)) {
         return MEMS_ERROR;
     }
 
@@ -562,14 +562,14 @@ status_t H3LIS331DL::setHPFMode(H3LIS331DL_HPFMode_t hpm) {
 status_t H3LIS331DL::setHPFCutOFF(H3LIS331DL_HPFCutOffFreq_t hpf) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG2, &value)) {
+    if (!readReg(_address, H3LIS331DL_CTRL_REG2, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0xFC;
     value |= (hpf << H3LIS331DL_HPCF);
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG2, value)) {
+    if (!writeReg(_address, H3LIS331DL_CTRL_REG2, value)) {
         return MEMS_ERROR;
     }
 
@@ -589,14 +589,14 @@ status_t H3LIS331DL::setHPFCutOFF(H3LIS331DL_HPFCutOffFreq_t hpf) {
 status_t H3LIS331DL::setInt2HPEnable(State_t stat) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG2, &value)) {
+    if (!readReg(_address, H3LIS331DL_CTRL_REG2, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0xF7;
     value |= stat << H3LIS331DL_HPEN2 ;
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG2, value)) {
+    if (!writeReg(_address, H3LIS331DL_CTRL_REG2, value)) {
         return MEMS_ERROR;
     }
 
@@ -615,14 +615,14 @@ status_t H3LIS331DL::setInt2HPEnable(State_t stat) {
 status_t H3LIS331DL::setInt1HPEnable(State_t stat) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG2, &value)) {
+    if (!readReg(_address, H3LIS331DL_CTRL_REG2, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0xFB;
     value |= stat << H3LIS331DL_HPEN1 ;
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG2, value)) {
+    if (!writeReg(_address, H3LIS331DL_CTRL_REG2, value)) {
         return MEMS_ERROR;
     }
 
@@ -640,14 +640,14 @@ status_t H3LIS331DL::setInt1HPEnable(State_t stat) {
 status_t H3LIS331DL::int1LatchEnable(State_t latch) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG3, &value)) {
+    if (!readReg(_address, H3LIS331DL_CTRL_REG3, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0xFB;
     value |= latch << H3LIS331DL_LIR1;
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG3, value)) {
+    if (!writeReg(_address, H3LIS331DL_CTRL_REG3, value)) {
         return MEMS_ERROR;
     }
 
@@ -665,14 +665,14 @@ status_t H3LIS331DL::int1LatchEnable(State_t latch) {
 status_t H3LIS331DL::int2LatchEnable(State_t latch) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG3, &value)) {
+    if (!readReg(_address, H3LIS331DL_CTRL_REG3, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0xDF;
     value |= latch << H3LIS331DL_LIR2;
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_CTRL_REG3, value)) {
+    if (!writeReg(_address, H3LIS331DL_CTRL_REG3, value)) {
         return MEMS_ERROR;
     }
 
@@ -690,7 +690,7 @@ status_t H3LIS331DL::int2LatchEnable(State_t latch) {
 status_t H3LIS331DL::resetInt1Latch(void) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_INT1_SRC, &value)) {
+    if (!readReg(_address, H3LIS331DL_INT1_SRC, &value)) {
         return MEMS_ERROR;
     }
 
@@ -708,7 +708,7 @@ status_t H3LIS331DL::resetInt1Latch(void) {
 status_t H3LIS331DL::resetInt2Latch(void) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_INT2_SRC, &value)) {
+    if (!readReg(_address, H3LIS331DL_INT2_SRC, &value)) {
         return MEMS_ERROR;
     }
 
@@ -727,14 +727,14 @@ status_t H3LIS331DL::resetInt2Latch(void) {
 status_t H3LIS331DL::setInt1Configuration(H3LIS331DL_IntConf_t ic) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_INT1_CFG, &value)) {
+    if (!readReg(_address, H3LIS331DL_INT1_CFG, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0x40;
     value |= ic;
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_INT1_CFG, value)) {
+    if (!writeReg(_address, H3LIS331DL_INT1_CFG, value)) {
         return MEMS_ERROR;
     }
 
@@ -753,14 +753,14 @@ status_t H3LIS331DL::setInt1Configuration(H3LIS331DL_IntConf_t ic) {
 status_t H3LIS331DL::setInt2Configuration(H3LIS331DL_IntConf_t ic) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_INT2_CFG, &value)) {
+    if (!readReg(_address, H3LIS331DL_INT2_CFG, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0x40;
     value |= ic;
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_INT2_CFG, value)) {
+    if (!writeReg(_address, H3LIS331DL_INT2_CFG, value)) {
         return MEMS_ERROR;
     }
 
@@ -778,14 +778,14 @@ status_t H3LIS331DL::setInt2Configuration(H3LIS331DL_IntConf_t ic) {
 status_t H3LIS331DL::setInt1Mode(H3LIS331DL_IntMode_t int_mode) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_INT1_CFG, &value)) {
+    if (!readReg(_address, H3LIS331DL_INT1_CFG, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0x3F;
     value |= (int_mode << H3LIS331DL_INT_6D);
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_INT1_CFG, value)) {
+    if (!writeReg(_address, H3LIS331DL_INT1_CFG, value)) {
         return MEMS_ERROR;
     }
 
@@ -803,14 +803,14 @@ status_t H3LIS331DL::setInt1Mode(H3LIS331DL_IntMode_t int_mode) {
 status_t H3LIS331DL::setInt2Mode(H3LIS331DL_IntMode_t int_mode) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_INT2_CFG, &value)) {
+    if (!readReg(_address, H3LIS331DL_INT2_CFG, &value)) {
         return MEMS_ERROR;
     }
 
     value &= 0x3F;
     value |= (int_mode << H3LIS331DL_INT_6D);
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_INT2_CFG, value)) {
+    if (!writeReg(_address, H3LIS331DL_INT2_CFG, value)) {
         return MEMS_ERROR;
     }
 
@@ -828,7 +828,7 @@ status_t H3LIS331DL::setInt2Mode(H3LIS331DL_IntMode_t int_mode) {
 status_t H3LIS331DL::get6DPositionInt1(byte* val) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_INT1_SRC, &value)) {
+    if (!readReg(_address, H3LIS331DL_INT1_SRC, &value)) {
         return MEMS_ERROR;
     }
 
@@ -869,7 +869,7 @@ status_t H3LIS331DL::get6DPositionInt1(byte* val) {
 status_t H3LIS331DL::get6DPositionInt2(byte* val) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_INT2_SRC, &value)) {
+    if (!readReg(_address, H3LIS331DL_INT2_SRC, &value)) {
         return MEMS_ERROR;
     }
 
@@ -912,7 +912,7 @@ status_t H3LIS331DL::setInt1Threshold(byte ths) {
         return MEMS_ERROR;
     }
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_INT1_THS, ths)) {
+    if (!writeReg(_address, H3LIS331DL_INT1_THS, ths)) {
         return MEMS_ERROR;
     }
 
@@ -932,7 +932,7 @@ status_t H3LIS331DL::setInt1Duration(byte id) {
         return MEMS_ERROR;
     }
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_INT1_DURATION, id)) {
+    if (!writeReg(_address, H3LIS331DL_INT1_DURATION, id)) {
         return MEMS_ERROR;
     }
 
@@ -952,7 +952,7 @@ status_t H3LIS331DL::setInt2Threshold(byte ths) {
         return MEMS_ERROR;
     }
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_INT2_THS, ths)) {
+    if (!writeReg(_address, H3LIS331DL_INT2_THS, ths)) {
         return MEMS_ERROR;
     }
 
@@ -972,7 +972,7 @@ status_t H3LIS331DL::setInt2Duration(byte id) {
         return MEMS_ERROR;
     }
 
-    if (!writeReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_INT2_DURATION, id)) {
+    if (!writeReg(_address, H3LIS331DL_INT2_DURATION, id)) {
         return MEMS_ERROR;
     }
 
@@ -989,7 +989,7 @@ status_t H3LIS331DL::setInt2Duration(byte id) {
 *******************************************************************************/
 status_t H3LIS331DL::getStatusReg(byte* val) {
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_STATUS_REG, val)) {
+    if (!readReg(_address, H3LIS331DL_STATUS_REG, val)) {
         return MEMS_ERROR;
     }
 
@@ -1008,7 +1008,7 @@ status_t H3LIS331DL::getStatusReg(byte* val) {
 status_t H3LIS331DL::getStatusBit(byte statusBIT, byte* val) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_STATUS_REG, &value)) {
+    if (!readReg(_address, H3LIS331DL_STATUS_REG, &value)) {
         return MEMS_ERROR;
     }
 
@@ -1092,14 +1092,14 @@ status_t H3LIS331DL::getStatusBit(byte statusBIT, byte* val) {
 *******************************************************************************/
 status_t H3LIS331DL::getAccAxesRaw(AxesRaw_t* buff) {
     byte valueL = 0, valueH = 0;
-    readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_OUT_X_L, &valueL);
-    readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_OUT_X_H, &valueH);
+    readReg(_address, H3LIS331DL_OUT_X_L, &valueL);
+    readReg(_address, H3LIS331DL_OUT_X_H, &valueH);
     buff->AXIS_X = (valueH << 8) | valueL;
-    readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_OUT_Y_L, &valueL);
-    readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_OUT_Y_H, &valueH);
+    readReg(_address, H3LIS331DL_OUT_Y_L, &valueL);
+    readReg(_address, H3LIS331DL_OUT_Y_H, &valueH);
     buff->AXIS_Y = (valueH << 8) | valueL;
-    readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_OUT_Z_L, &valueL);
-    readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_OUT_Z_H, &valueH);
+    readReg(_address, H3LIS331DL_OUT_Z_L, &valueL);
+    readReg(_address, H3LIS331DL_OUT_Z_H, &valueH);
     buff->AXIS_Z = (valueH << 8) | valueL;
     return MEMS_SUCCESS;
 }
@@ -1113,7 +1113,7 @@ status_t H3LIS331DL::getAccAxesRaw(AxesRaw_t* buff) {
     Return         : Status [MEMS_ERROR, MEMS_SUCCESS]
 *******************************************************************************/
 status_t H3LIS331DL::getInt1Src(byte* val) {
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_INT1_SRC, val)) {
+    if (!readReg(_address, H3LIS331DL_INT1_SRC, val)) {
         return MEMS_ERROR;
     }
 
@@ -1129,7 +1129,7 @@ status_t H3LIS331DL::getInt1Src(byte* val) {
     Return         : Status [MEMS_ERROR, MEMS_SUCCESS]
 *******************************************************************************/
 status_t H3LIS331DL::getInt2Src(byte* val) {
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_INT2_SRC, val)) {
+    if (!readReg(_address, H3LIS331DL_INT2_SRC, val)) {
         return MEMS_ERROR;
     }
 
@@ -1147,7 +1147,7 @@ status_t H3LIS331DL::getInt2Src(byte* val) {
 status_t H3LIS331DL::getInt1SrcBit(byte statusBIT, byte* val) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_INT1_SRC, &value)) {
+    if (!readReg(_address, H3LIS331DL_INT1_SRC, &value)) {
         return MEMS_ERROR;
     }
 
@@ -1234,7 +1234,7 @@ status_t H3LIS331DL::getInt1SrcBit(byte statusBIT, byte* val) {
 status_t H3LIS331DL::getInt2SrcBit(byte statusBIT, byte* val) {
     byte value;
 
-    if (!readReg(H3LIS331DL_MEMS_I2C_ADDRESS, H3LIS331DL_INT2_SRC, &value)) {
+    if (!readReg(_address, H3LIS331DL_INT2_SRC, &value)) {
         return MEMS_ERROR;
     }
 
@@ -1328,19 +1328,19 @@ uint8_t H3LIS331DL::readReg(byte deviceAddr, byte Reg, byte* Data) {
     // return MEMS_SUCCESS;
     // Reads num bytes starting from address register on device in to _buff array
     byte num = 1;
-    Wire.beginTransmission(deviceAddr); // start transmission to device
-    Wire.write(Reg);             // sends address to read from
-    Wire.endTransmission();         // end transmission
+    wireBus.beginTransmission(deviceAddr); // start transmission to device
+    wireBus.write(Reg);             // sends address to read from
+    wireBus.endTransmission();         // end transmission
 
-    Wire.beginTransmission(deviceAddr); // start transmission to device
-    Wire.requestFrom(deviceAddr, num);   // request 6 bytes from device
+    //wireBus.beginTransmission(deviceAddr); // start transmission to device
+    wireBus.requestFrom(deviceAddr, num);   // request 6 bytes from device
 
-    if (Wire.available()) {
-        *Data = Wire.read();    // receive a byte
-        Wire.endTransmission(); // end transmission
+    if (wireBus.available()) {
+        *Data = wireBus.read();    // receive a byte
+        wireBus.endTransmission(); // end transmission
         return MEMS_SUCCESS;
     } else {
-        Wire.endTransmission();
+        wireBus.endTransmission();
         return MEMS_ERROR;
     }
 }
@@ -1360,9 +1360,9 @@ uint8_t H3LIS331DL::writeReg(byte deviceAddress, byte WriteAddr, byte Data) {
     // i.e. I2C_ByteWrite(&Data,  deviceAddress,  WriteAddr);
     //  return MEMS_SUCCESS;
     // Writes val to address register on device
-    Wire.beginTransmission(deviceAddress); // start transmission to device
-    Wire.write(WriteAddr);             // send register address
-    Wire.write(Data);                 // send value to write
-    Wire.endTransmission();         // end transmission
+    wireBus.beginTransmission(deviceAddress); // start transmission to device
+    wireBus.write(WriteAddr);             // send register address
+    wireBus.write(Data);                 // send value to write
+    wireBus.endTransmission();         // end transmission
     return MEMS_SUCCESS;
 }
